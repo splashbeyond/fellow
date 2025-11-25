@@ -8,6 +8,7 @@ export type ConnectionState =
 export interface MatchedEvent {
   roomId: string;
   initiator: boolean;
+  roomType?: 'faith' | 'friends';
 }
 
 export interface OfferEvent {

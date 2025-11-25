@@ -27,9 +27,12 @@ const io = new Server(server, {
   }
 });
 
-// Matchmaking queue (FIFO)
-const waitingQueue = [];
-const activeRooms = new Map(); // roomId -> { user1: socketId, user2: socketId }
+// Matchmaking queues (FIFO) - separate queues for different room types
+const waitingQueues = {
+  faith: [],
+  friends: []
+};
+const activeRooms = new Map(); // roomId -> { user1: socketId, user2: socketId, roomType: 'faith' | 'friends' }
 
 // Generate unique room ID
 function generateRoomId() {
@@ -37,27 +40,32 @@ function generateRoomId() {
 }
 
 // Handle user joining queue
-function handleJoinQueue(socket) {
-  if (waitingQueue.includes(socket.id)) {
+function handleJoinQueue(socket, roomType = 'friends') {
+  const queue = waitingQueues[roomType] || waitingQueues.friends;
+  
+  if (queue.includes(socket.id)) {
     return; // Already in queue
   }
   
-  waitingQueue.push(socket.id);
-  console.log(`User ${socket.id} joined queue. Queue length: ${waitingQueue.length}`);
-  attemptMatch();
+  queue.push(socket.id);
+  console.log(`User ${socket.id} joined ${roomType} queue. Queue length: ${queue.length}`);
+  attemptMatch(roomType);
 }
 
-// Attempt to match two users
-function attemptMatch() {
-  if (waitingQueue.length >= 2) {
-    const user1 = waitingQueue.shift();
-    const user2 = waitingQueue.shift();
+// Attempt to match two users in a specific queue
+function attemptMatch(roomType = 'friends') {
+  const queue = waitingQueues[roomType] || waitingQueues.friends;
+  
+  if (queue.length >= 2) {
+    const user1 = queue.shift();
+    const user2 = queue.shift();
     const roomId = generateRoomId();
     
     // Create room
     activeRooms.set(roomId, {
       user1,
       user2,
+      roomType,
       createdAt: Date.now()
     });
     
@@ -70,25 +78,26 @@ function attemptMatch() {
       socket2.join(roomId);
       
       // Notify both users - first user is initiator
-      socket1.emit('matched', { roomId, initiator: true });
-      socket2.emit('matched', { roomId, initiator: false });
+      socket1.emit('matched', { roomId, initiator: true, roomType });
+      socket2.emit('matched', { roomId, initiator: false, roomType });
       
-      console.log(`Matched ${user1} and ${user2} in room ${roomId}`);
+      console.log(`Matched ${user1} and ${user2} in ${roomType} room ${roomId}`);
     } else {
       // One of the sockets disconnected, clean up
-      if (!socket1) waitingQueue.push(user2);
-      if (!socket2) waitingQueue.push(user1);
+      if (!socket1) queue.push(user2);
+      if (!socket2) queue.push(user1);
       activeRooms.delete(roomId);
     }
   }
 }
 
 // Remove user from queue
-function handleLeaveQueue(socket) {
-  const index = waitingQueue.indexOf(socket.id);
+function handleLeaveQueue(socket, roomType = 'friends') {
+  const queue = waitingQueues[roomType] || waitingQueues.friends;
+  const index = queue.indexOf(socket.id);
   if (index > -1) {
-    waitingQueue.splice(index, 1);
-    console.log(`User ${socket.id} left queue. Queue length: ${waitingQueue.length}`);
+    queue.splice(index, 1);
+    console.log(`User ${socket.id} left ${roomType} queue. Queue length: ${queue.length}`);
   }
 }
 
@@ -114,13 +123,15 @@ io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
   
   // Join queue
-  socket.on('join-queue', () => {
-    handleJoinQueue(socket);
+  socket.on('join-queue', (data) => {
+    const roomType = data?.roomType || 'friends';
+    handleJoinQueue(socket, roomType);
   });
   
   // Leave queue
-  socket.on('leave-queue', () => {
-    handleLeaveQueue(socket);
+  socket.on('leave-queue', (data) => {
+    const roomType = data?.roomType || 'friends';
+    handleLeaveQueue(socket, roomType);
   });
   
   // WebRTC signaling: offer
@@ -178,10 +189,11 @@ io.on('connection', (socket) => {
     // Clean up room
     activeRooms.delete(roomId);
     
-    // Re-add both to queue
-    handleJoinQueue(socket);
+    // Re-add both to queue (preserve room type)
+    const roomType = room.roomType || 'friends';
+    handleJoinQueue(socket, roomType);
     if (otherSocket) {
-      handleJoinQueue(otherSocket);
+      handleJoinQueue(otherSocket, roomType);
     }
   });
   
@@ -203,8 +215,9 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
     
-    // Remove from queue
-    handleLeaveQueue(socket);
+    // Remove from all queues
+    handleLeaveQueue(socket, 'faith');
+    handleLeaveQueue(socket, 'friends');
     
     // Clean up any rooms this user was in
     for (const [roomId, room] of activeRooms.entries()) {
@@ -220,7 +233,10 @@ io.on('connection', (socket) => {
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    queueLength: waitingQueue.length,
+    queues: {
+      faith: waitingQueues.faith.length,
+      friends: waitingQueues.friends.length
+    },
     activeRooms: activeRooms.size 
   });
 });

@@ -140,7 +140,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
         <aside
           ref={ref}
           className={cn(
-            "flex h-screen w-[--sidebar-width] flex-col bg-charcoal border-r border-charcoal/20",
+            "flex h-screen w-[--sidebar-width] flex-col bg-charcoal/95 border-r-2 border-ivory/30 shadow-2xl",
             className
           )}
           {...props}
@@ -168,7 +168,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
           data-side={side}
           data-mobile={mobile}
           className={cn(
-            "group peer flex h-screen flex-col bg-sage border-r border-sage/50 transition-all duration-200",
+            "group peer flex h-screen flex-col transition-all duration-200",
             side === "right" && "border-l border-r-0",
             variant === "floating" && "m-2 rounded-lg border",
             collapsible === "icon" &&
@@ -185,7 +185,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
               "fixed right-0 top-0 z-50 translate-x-0 data-[state=collapsed]:translate-x-full",
             mobile && !openMobile && "-translate-x-full",
             !mobile && collapsible === "offcanvas" && "relative translate-x-0",
-            "bg-charcoal border-r border-charcoal/20",
+            "bg-charcoal/95 border-r-2 border-ivory/30 shadow-2xl",
             className
           )}
           {...props}
@@ -353,7 +353,7 @@ const SidebarTrigger = React.forwardRef<
       ref={ref}
       onClick={toggleSidebar}
       className={cn(
-        "inline-flex items-center justify-center rounded-md p-2 text-charcoal transition-colors hover:bg-sage/50",
+        "inline-flex items-center justify-center rounded-md p-2 text-ivory transition-colors hover:bg-charcoal/50",
         className
       )}
       {...props}

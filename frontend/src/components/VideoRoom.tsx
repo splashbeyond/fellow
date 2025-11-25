@@ -22,9 +22,10 @@ interface MediaStreamHook {
 interface VideoRoomProps {
   onEndCall: () => void;
   mediaStreamHook: MediaStreamHook;
+  roomType: 'faith' | 'friends';
 }
 
-export function VideoRoom({ onEndCall, mediaStreamHook }: VideoRoomProps) {
+export function VideoRoom({ onEndCall, mediaStreamHook, roomType }: VideoRoomProps) {
   const { 
     localStream, 
     toggleAudio, 
@@ -39,24 +40,24 @@ export function VideoRoom({ onEndCall, mediaStreamHook }: VideoRoomProps) {
     error, 
     skip,
     roomId
-  } = useWebRTC(localStream);
+  } = useWebRTC(localStream, roomType);
 
   // Join queue when component mounts and stream is available
   useEffect(() => {
     if (localStream) {
-      signalingService.joinQueue();
+      signalingService.joinQueue(roomType);
     }
 
     return () => {
-      signalingService.leaveQueue();
+      signalingService.leaveQueue(roomType);
     };
-  }, [localStream]);
+  }, [localStream, roomType]);
 
   const handleSkip = () => {
     skip();
     // Rejoin queue after skipping
     setTimeout(() => {
-      signalingService.joinQueue();
+      signalingService.joinQueue(roomType);
     }, 500);
   };
 
@@ -66,7 +67,7 @@ export function VideoRoom({ onEndCall, mediaStreamHook }: VideoRoomProps) {
   };
 
   return (
-    <div className="min-h-screen bg-ivory flex relative">
+    <div className="min-h-screen bg-charcoal flex relative">
       {/* Chat Sidebar */}
       <div className="w-80 flex-shrink-0">
         <Chat 
@@ -77,40 +78,42 @@ export function VideoRoom({ onEndCall, mediaStreamHook }: VideoRoomProps) {
 
       {/* Main Video Area */}
       <div className="flex-1 flex flex-col relative">
-        <div className="absolute top-4 left-4 z-50">
-          <Logo size="sm" />
-        </div>
         <UserButton />
         {/* Connection Status Bar */}
-        <div className="bg-sage border-b-2 border-charcoal/30 p-2 text-center shadow-sm">
-        {(connectionState === 'idle' || connectionState === 'waiting') && localStream && (
-          <div className="text-charcoal flex items-center justify-center gap-2">
-            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Looking for someone to chat with...
+        <div className="bg-charcoal/80 border-b-2 border-charcoal/50 p-2 shadow-sm flex items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <Logo size="sm" className="brightness-0 invert" />
           </div>
-        )}
-        {connectionState === 'connecting' && (
-          <div className="text-moss flex items-center justify-center gap-2">
-            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Connecting...
+          <div className="flex-1 flex items-center justify-center">
+            {(connectionState === 'idle' || connectionState === 'waiting') && localStream && (
+              <div className="text-ivory flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Looking for someone to chat with...
+              </div>
+            )}
+            {connectionState === 'connecting' && (
+              <div className="text-moss flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Connecting...
+              </div>
+            )}
+            {connectionState === 'connected' && (
+              <div className="text-moss font-medium">Connected</div>
+            )}
+            {connectionState === 'disconnected' && (
+              <div className="text-ivory/70">Partner disconnected. Looking for someone new...</div>
+            )}
+            {error && (
+              <div className="text-red-300">{error}</div>
+            )}
           </div>
-        )}
-        {connectionState === 'connected' && (
-          <div className="text-moss font-medium">Connected</div>
-        )}
-        {connectionState === 'disconnected' && (
-          <div className="text-charcoal/70">Partner disconnected. Looking for someone new...</div>
-        )}
-        {error && (
-          <div className="text-red-600">{error}</div>
-        )}
-      </div>
+        </div>
 
       {/* Video Container */}
       <div className="flex-1 relative bg-charcoal">
@@ -146,7 +149,7 @@ export function VideoRoom({ onEndCall, mediaStreamHook }: VideoRoomProps) {
       </div>
 
       {/* Controls */}
-      <div className="bg-sage border-t-2 border-charcoal/30 p-4 flex justify-center shadow-sm">
+      <div className="bg-charcoal/80 border-t-2 border-charcoal/50 p-4 flex justify-center shadow-sm">
         <Controls
           isAudioMuted={!isAudioEnabled()}
           isVideoDisabled={!isVideoEnabled()}

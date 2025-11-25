@@ -6,11 +6,13 @@ import { Logo } from './components/Logo';
 import { useSocket } from './hooks/useSocket';
 import { useMediaStream } from './hooks/useMediaStream';
 
-type AppState = 'home' | 'chat' | 'sign-in' | 'sign-up';
+type AppState = 'home' | 'selection' | 'chat' | 'sign-in' | 'sign-up';
+type RoomType = 'faith' | 'friends' | null;
 
 function App() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [appState, setAppState] = useState<AppState>('sign-in');
+  const [roomType, setRoomType] = useState<RoomType>(null);
   const { isConnected } = useSocket();
   const mediaStreamHook = useMediaStream();
 
@@ -109,15 +111,32 @@ function App() {
       
       {appState === 'home' && (
         <Home 
-          onStartChat={() => setAppState('chat')}
+          onStartChat={() => setAppState('selection')}
           mediaStreamHook={mediaStreamHook}
         />
       )}
       
-      {appState === 'chat' && (
-        <VideoRoom 
-          onEndCall={() => setAppState('home')}
+      {appState === 'selection' && (
+        <Home 
+          onStartChat={(type?: 'faith' | 'friends') => {
+            if (type) {
+              setRoomType(type);
+              setAppState('chat');
+            }
+          }}
           mediaStreamHook={mediaStreamHook}
+          showRoomSelection={true}
+        />
+      )}
+      
+      {appState === 'chat' && roomType && (
+        <VideoRoom 
+          onEndCall={() => {
+            setRoomType(null);
+            setAppState('home');
+          }}
+          mediaStreamHook={mediaStreamHook}
+          roomType={roomType}
         />
       )}
     </div>
@@ -125,4 +144,5 @@ function App() {
 }
 
 export default App;
+
 

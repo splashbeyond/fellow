@@ -81,19 +81,19 @@ export function Chat({ roomId, isConnected }: ChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-sage border-r border-charcoal/10">
+    <div className="flex flex-col h-screen bg-charcoal/95 border-r-2 border-ivory/30 shadow-2xl">
       {/* Chat Header */}
-      <div className="p-4 border-b border-sage/50 bg-ivory">
-        <h3 className="font-semibold text-charcoal">Chat</h3>
+      <div className="p-4 border-b border-charcoal/50 bg-charcoal/90">
+        <h3 className="font-semibold text-ivory">Chat</h3>
         {!isConnected && (
-          <p className="text-xs text-charcoal/60 mt-1">Waiting for connection...</p>
+          <p className="text-xs text-ivory/60 mt-1">Waiting for connection...</p>
         )}
       </div>
 
       {/* Messages List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-charcoal">
         {messages.length === 0 ? (
-          <div className="text-center text-charcoal/50 text-sm mt-8">
+          <div className="text-center text-ivory/50 text-sm mt-8">
             {isConnected ? 'No messages yet. Start the conversation!' : 'Connect to start chatting'}
           </div>
         ) : (
@@ -106,7 +106,7 @@ export function Chat({ roomId, isConnected }: ChatProps) {
                 className={`max-w-[80%] rounded-lg px-3 py-2 ${
                   message.isOwn
                     ? 'bg-moss text-ivory'
-                    : 'bg-ivory text-charcoal border border-sage'
+                    : 'bg-charcoal/60 text-ivory border border-charcoal/50'
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
@@ -128,7 +128,7 @@ export function Chat({ roomId, isConnected }: ChatProps) {
       </div>
 
       {/* Chat Input */}
-      <form onSubmit={handleSend} className="p-4 border-t border-sage/50 bg-ivory">
+      <form onSubmit={handleSend} className="p-4 border-t border-charcoal/50 bg-charcoal/90">
         <div className="flex gap-2">
           <Textarea
             ref={textareaRef}
@@ -143,7 +143,7 @@ export function Chat({ roomId, isConnected }: ChatProps) {
           <button
             type="submit"
             disabled={!inputValue.trim() || !isConnected || !roomId}
-            className="px-4 py-2 bg-moss hover:bg-moss/90 disabled:bg-sage disabled:cursor-not-allowed text-ivory rounded-md transition-colors self-end"
+            className="px-4 py-2 bg-moss hover:bg-moss/90 disabled:bg-charcoal/50 disabled:cursor-not-allowed text-ivory rounded-md transition-colors self-end"
             aria-label="Send message"
           >
             <svg
@@ -161,7 +161,7 @@ export function Chat({ roomId, isConnected }: ChatProps) {
             </svg>
           </button>
         </div>
-        <p className="text-xs text-charcoal/50 mt-2">
+        <p className="text-xs text-ivory/50 mt-2">
           Press Enter to send, Shift+Enter for new line
         </p>
       </form>

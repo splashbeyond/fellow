@@ -7,7 +7,7 @@ const ICE_SERVERS = [
   { urls: 'stun:stun1.l.google.com:19302' },
 ];
 
-export function useWebRTC(localStream: MediaStream | null) {
+export function useWebRTC(localStream: MediaStream | null, roomType: 'faith' | 'friends' = 'friends') {
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -154,9 +154,9 @@ export function useWebRTC(localStream: MediaStream | null) {
     cleanup();
     // Automatically rejoin queue after a short delay
     setTimeout(() => {
-      signalingService.joinQueue();
+      signalingService.joinQueue(roomType);
     }, 1000);
-  }, [cleanup]);
+  }, [cleanup, roomType]);
 
   const skip = useCallback(() => {
     if (roomIdRef.current) {

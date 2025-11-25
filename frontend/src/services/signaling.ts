@@ -36,12 +36,12 @@ export class SignalingService {
   }
 
   // Queue management
-  joinQueue() {
-    this.socket?.emit('join-queue');
+  joinQueue(roomType: 'faith' | 'friends' = 'friends') {
+    this.socket?.emit('join-queue', { roomType });
   }
 
-  leaveQueue() {
-    this.socket?.emit('leave-queue');
+  leaveQueue(roomType: 'faith' | 'friends' = 'friends') {
+    this.socket?.emit('leave-queue', { roomType });
   }
 
   // WebRTC signaling
