@@ -29,3 +29,8 @@ export interface PeerDisconnectedEvent {
   roomId: string;
 }
 
+export interface ChatMessageEvent {
+  text: string;
+  roomId: string;
+}
+

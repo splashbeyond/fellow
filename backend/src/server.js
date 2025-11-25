@@ -185,6 +185,20 @@ io.on('connection', (socket) => {
     }
   });
   
+  // Chat message
+  socket.on('chat-message', (data) => {
+    const { roomId, text } = data;
+    const room = activeRooms.get(roomId);
+    if (!room) return;
+    
+    // Forward message to the other peer
+    const otherSocketId = room.user1 === socket.id ? room.user2 : room.user1;
+    const otherSocket = io.sockets.sockets.get(otherSocketId);
+    if (otherSocket) {
+      otherSocket.emit('chat-message', { roomId, text });
+    }
+  });
+  
   // Handle disconnect
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);

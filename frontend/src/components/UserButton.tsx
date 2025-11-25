@@ -1,8 +1,13 @@
 import { UserButton as ClerkUserButton } from '@clerk/clerk-react';
 
-export function UserButton() {
+interface UserButtonProps {
+  className?: string;
+}
+
+export function UserButton({ className }: UserButtonProps = {}) {
+  const defaultClassName = "absolute top-4 right-4 z-50";
   return (
-    <div className="absolute top-4 right-4 z-50">
+    <div className={className || defaultClassName}>
       <ClerkUserButton 
         appearance={{
           elements: {
@@ -11,6 +16,7 @@ export function UserButton() {
             userButtonPopoverActionButton: "text-charcoal hover:bg-ivory",
             userButtonPopoverActionButtonText: "text-charcoal",
             userButtonPopoverFooter: "hidden",
+            userButtonTrigger: "focus:outline-none focus:ring-2 focus:ring-ivory/20",
           }
         }}
       />

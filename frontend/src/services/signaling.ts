@@ -4,7 +4,8 @@ import type {
   OfferEvent, 
   AnswerEvent, 
   IceCandidateEvent,
-  PeerDisconnectedEvent 
+  PeerDisconnectedEvent,
+  ChatMessageEvent
 } from '../types';
 
 const SIGNALING_SERVER_URL = import.meta.env.VITE_SIGNALING_SERVER_URL || 'http://localhost:3001';
@@ -61,6 +62,11 @@ export class SignalingService {
     this.socket?.emit('skip', { roomId });
   }
 
+  // Chat messaging
+  sendChatMessage(roomId: string, text: string) {
+    this.socket?.emit('chat-message', { roomId, text });
+  }
+
   // Event listeners
   onMatched(callback: (data: MatchedEvent) => void) {
     this.socket?.on('matched', callback);
@@ -82,6 +88,10 @@ export class SignalingService {
     this.socket?.on('peer-disconnected', callback);
   }
 
+  onChatMessage(callback: (data: ChatMessageEvent) => void) {
+    this.socket?.on('chat-message', callback);
+  }
+
   // Remove event listeners
   offMatched(callback: (data: MatchedEvent) => void) {
     this.socket?.off('matched', callback);
@@ -101,6 +111,10 @@ export class SignalingService {
 
   offPeerDisconnected(callback: (data: PeerDisconnectedEvent) => void) {
     this.socket?.off('peer-disconnected', callback);
+  }
+
+  offChatMessage(callback: (data: ChatMessageEvent) => void) {
+    this.socket?.off('chat-message', callback);
   }
 
   // Connection status

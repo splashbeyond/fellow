@@ -208,7 +208,8 @@ export function useWebRTC(localStream: MediaStream | null) {
     connectionState,
     remoteStream,
     error,
-    skip
+    skip,
+    roomId: roomIdRef.current
   };
 }
 

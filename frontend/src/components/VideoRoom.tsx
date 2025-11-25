@@ -3,6 +3,7 @@ import { VideoPlayer } from './VideoPlayer';
 import { Controls } from './Controls';
 import { UserButton } from './UserButton';
 import { Logo } from './Logo';
+import { Chat } from './Chat';
 import { useEffect } from 'react';
 import { signalingService } from '../services/signaling';
 
@@ -36,7 +37,8 @@ export function VideoRoom({ onEndCall, mediaStreamHook }: VideoRoomProps) {
     connectionState, 
     remoteStream, 
     error, 
-    skip 
+    skip,
+    roomId
   } = useWebRTC(localStream);
 
   // Join queue when component mounts and stream is available
@@ -64,13 +66,23 @@ export function VideoRoom({ onEndCall, mediaStreamHook }: VideoRoomProps) {
   };
 
   return (
-    <div className="min-h-screen bg-ivory flex flex-col relative app-font">
-      <div className="absolute top-4 left-4 z-50">
-        <Logo size="sm" />
+    <div className="min-h-screen bg-ivory flex relative">
+      {/* Chat Sidebar */}
+      <div className="w-80 flex-shrink-0">
+        <Chat 
+          roomId={roomId} 
+          isConnected={connectionState === 'connected'} 
+        />
       </div>
-      <UserButton />
-      {/* Connection Status Bar */}
-      <div className="bg-sage p-2 text-center">
+
+      {/* Main Video Area */}
+      <div className="flex-1 flex flex-col relative">
+        <div className="absolute top-4 left-4 z-50">
+          <Logo size="sm" />
+        </div>
+        <UserButton />
+        {/* Connection Status Bar */}
+        <div className="bg-sage border-b-2 border-charcoal/30 p-2 text-center shadow-sm">
         {(connectionState === 'idle' || connectionState === 'waiting') && localStream && (
           <div className="text-charcoal flex items-center justify-center gap-2">
             <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -134,7 +146,7 @@ export function VideoRoom({ onEndCall, mediaStreamHook }: VideoRoomProps) {
       </div>
 
       {/* Controls */}
-      <div className="bg-sage p-4 flex justify-center">
+      <div className="bg-sage border-t-2 border-charcoal/30 p-4 flex justify-center shadow-sm">
         <Controls
           isAudioMuted={!isAudioEnabled()}
           isVideoDisabled={!isVideoEnabled()}
@@ -143,6 +155,7 @@ export function VideoRoom({ onEndCall, mediaStreamHook }: VideoRoomProps) {
           onSkip={handleSkip}
           onEndCall={handleEndCall}
         />
+      </div>
       </div>
     </div>
   );
