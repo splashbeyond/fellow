@@ -89,15 +89,26 @@ export function BibleSearch({ roomId, isConnected }: BibleSearchProps) {
 
   // Parse reference to extract book, chapter, and verse
   const parseReference = (reference: string) => {
-    // Match patterns like "John 3:16", "1 Corinthians 13:4", "Psalm 23:1"
-    const match = reference.match(/^(.+?)\s+(\d+):(\d+)/);
-    if (match) {
+    // Match patterns like "John 3:16", "1 Corinthians 13:4", "Psalm 23:1" (with verse)
+    const verseMatch = reference.match(/^(.+?)\s+(\d+):(\d+)/);
+    if (verseMatch) {
       return {
-        book: match[1].trim(),
-        chapter: parseInt(match[2], 10),
-        verse: parseInt(match[3], 10)
+        book: verseMatch[1].trim(),
+        chapter: parseInt(verseMatch[2], 10),
+        verse: parseInt(verseMatch[3], 10)
       };
     }
+    
+    // Match patterns like "Psalms 116", "John 3" (chapter only, no verse)
+    const chapterMatch = reference.match(/^(.+?)\s+(\d+)$/);
+    if (chapterMatch) {
+      return {
+        book: chapterMatch[1].trim(),
+        chapter: parseInt(chapterMatch[2], 10),
+        verse: null
+      };
+    }
+    
     return null;
   };
 
@@ -105,8 +116,17 @@ export function BibleSearch({ roomId, isConnected }: BibleSearchProps) {
   const handleNextVerse = async () => {
     if (!verseData || !currentVerse) return;
     
-    const parsed = parseReference(currentVerse.reference);
-    if (!parsed) return;
+    let parsed = parseReference(currentVerse.reference);
+    // If parsing fails, try to get info from verseData
+    if (!parsed && verseData.verses && verseData.verses.length > 0) {
+      const firstVerse = verseData.verses[0];
+      parsed = {
+        book: firstVerse.book_name,
+        chapter: firstVerse.chapter,
+        verse: firstVerse.verse
+      };
+    }
+    if (!parsed || !parsed.chapter) return;
 
     setIsSearching(true);
     
@@ -145,8 +165,17 @@ export function BibleSearch({ roomId, isConnected }: BibleSearchProps) {
   const handlePreviousVerse = async () => {
     if (!verseData || !currentVerse) return;
     
-    const parsed = parseReference(currentVerse.reference);
-    if (!parsed) return;
+    let parsed = parseReference(currentVerse.reference);
+    // If parsing fails, try to get info from verseData
+    if (!parsed && verseData.verses && verseData.verses.length > 0) {
+      const firstVerse = verseData.verses[0];
+      parsed = {
+        book: firstVerse.book_name,
+        chapter: firstVerse.chapter,
+        verse: firstVerse.verse
+      };
+    }
+    if (!parsed || !parsed.chapter) return;
 
     setIsSearching(true);
     
@@ -196,10 +225,23 @@ export function BibleSearch({ roomId, isConnected }: BibleSearchProps) {
       return;
     }
     
-    const parsed = parseReference(currentVerse.reference);
-    console.log('Parsed reference:', parsed);
-    if (!parsed) {
-      console.log('Could not parse reference:', currentVerse.reference);
+    // Try to parse the reference
+    let parsed = parseReference(currentVerse.reference);
+    
+    // If parsing fails, try to get chapter info from verseData
+    if (!parsed && verseData && verseData.verses && verseData.verses.length > 0) {
+      const firstVerse = verseData.verses[0];
+      parsed = {
+        book: firstVerse.book_name,
+        chapter: firstVerse.chapter,
+        verse: firstVerse.verse
+      };
+      console.log('Got chapter info from verseData:', parsed);
+    }
+    
+    if (!parsed || !parsed.chapter) {
+      console.log('Could not parse reference or get chapter:', currentVerse.reference);
+      alert('Could not determine chapter. Please search for a specific verse (e.g., "John 3:16") or chapter (e.g., "John 3").');
       return;
     }
     
@@ -265,9 +307,18 @@ export function BibleSearch({ roomId, isConnected }: BibleSearchProps) {
   };
 
   // Check if we can navigate
-  const parsed = currentVerse ? parseReference(currentVerse.reference) : null;
+  let parsed = currentVerse ? parseReference(currentVerse.reference) : null;
+  // If parsing fails, try to get info from verseData
+  if (!parsed && currentVerse && verseData && verseData.verses && verseData.verses.length > 0) {
+    const firstVerse = verseData.verses[0];
+    parsed = {
+      book: firstVerse.book_name,
+      chapter: firstVerse.chapter,
+      verse: firstVerse.verse
+    };
+  }
   // Can go previous if not at verse 1 of chapter 1 (we'll try to find previous chapter)
-  const canGoPrevious = parsed ? (parsed.verse > 1 || parsed.chapter > 1) : false;
+  const canGoPrevious = parsed ? ((parsed.verse && parsed.verse > 1) || parsed.chapter > 1) : false;
 
   return (
     <>
@@ -345,7 +396,7 @@ export function BibleSearch({ roomId, isConnected }: BibleSearchProps) {
             </button>
             
             <span className="text-xs text-ivory/60">
-              {parsed ? `${parsed.book} ${parsed.chapter}:${parsed.verse}` : currentVerse.reference}
+              {parsed ? (parsed.verse ? `${parsed.book} ${parsed.chapter}:${parsed.verse}` : `${parsed.book} ${parsed.chapter}`) : currentVerse.reference}
             </span>
             
             <button
