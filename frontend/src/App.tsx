@@ -10,7 +10,7 @@ type AppState = 'home' | 'selection' | 'chat' | 'sign-in' | 'sign-up';
 type RoomType = 'faith' | 'friends' | null;
 
 function App() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
   const [appState, setAppState] = useState<AppState>('sign-in');
   const [roomType, setRoomType] = useState<RoomType>(null);
   const { isConnected } = useSocket();

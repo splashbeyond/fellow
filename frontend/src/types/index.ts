@@ -35,3 +35,16 @@ export interface ChatMessageEvent {
   roomId: string;
 }
 
+export interface BibleVerseEvent {
+  roomId: string;
+  reference: string;
+  text: string;
+  verses: Array<{
+    book_id: string;
+    book_name: string;
+    chapter: number;
+    verse: number;
+    text: string;
+  }>;
+}
+

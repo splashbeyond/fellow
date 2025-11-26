@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Textarea } from './ui/textarea';
 import { signalingService } from '../services/signaling';
+import { BibleSearch } from './BibleSearch';
 
 interface Message {
   id: string;
@@ -19,6 +20,7 @@ export function Chat({ roomId, isConnected }: ChatProps) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -90,10 +92,16 @@ export function Chat({ roomId, isConnected }: ChatProps) {
         )}
       </div>
 
-      {/* Messages List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-charcoal">
+      {/* Bible Search */}
+      <BibleSearch 
+        roomId={roomId} 
+        isConnected={isConnected} 
+      />
+
+      {/* Messages List - Smaller section */}
+      <div className="h-48 overflow-y-auto p-4 space-y-3 bg-charcoal border-t border-charcoal/50">
         {messages.length === 0 ? (
-          <div className="text-center text-ivory/50 text-sm mt-8">
+          <div className="text-center text-ivory/50 text-sm mt-4">
             {isConnected ? 'No messages yet. Start the conversation!' : 'Connect to start chatting'}
           </div>
         ) : (

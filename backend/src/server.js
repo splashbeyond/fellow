@@ -210,6 +210,20 @@ io.on('connection', (socket) => {
       otherSocket.emit('chat-message', { roomId, text });
     }
   });
+
+  // Bible verse sharing
+  socket.on('bible-verse', (data) => {
+    const { roomId, reference, text, verses } = data;
+    const room = activeRooms.get(roomId);
+    if (!room) return;
+    
+    // Forward Bible verse to the other peer
+    const otherSocketId = room.user1 === socket.id ? room.user2 : room.user1;
+    const otherSocket = io.sockets.sockets.get(otherSocketId);
+    if (otherSocket) {
+      otherSocket.emit('bible-verse', { roomId, reference, text, verses });
+    }
+  });
   
   // Handle disconnect
   socket.on('disconnect', () => {

@@ -5,7 +5,8 @@ import type {
   AnswerEvent, 
   IceCandidateEvent,
   PeerDisconnectedEvent,
-  ChatMessageEvent
+  ChatMessageEvent,
+  BibleVerseEvent
 } from '../types';
 
 const SIGNALING_SERVER_URL = import.meta.env.VITE_SIGNALING_SERVER_URL || 'http://localhost:3001';
@@ -67,6 +68,11 @@ export class SignalingService {
     this.socket?.emit('chat-message', { roomId, text });
   }
 
+  // Bible verse sharing
+  shareBibleVerse(roomId: string, verse: Omit<BibleVerseEvent, 'roomId'>) {
+    this.socket?.emit('bible-verse', { roomId, ...verse });
+  }
+
   // Event listeners
   onMatched(callback: (data: MatchedEvent) => void) {
     this.socket?.on('matched', callback);
@@ -92,6 +98,10 @@ export class SignalingService {
     this.socket?.on('chat-message', callback);
   }
 
+  onBibleVerse(callback: (data: BibleVerseEvent) => void) {
+    this.socket?.on('bible-verse', callback);
+  }
+
   // Remove event listeners
   offMatched(callback: (data: MatchedEvent) => void) {
     this.socket?.off('matched', callback);
@@ -115,6 +125,10 @@ export class SignalingService {
 
   offChatMessage(callback: (data: ChatMessageEvent) => void) {
     this.socket?.off('chat-message', callback);
+  }
+
+  offBibleVerse(callback: (data: BibleVerseEvent) => void) {
+    this.socket?.off('bible-verse', callback);
   }
 
   // Connection status

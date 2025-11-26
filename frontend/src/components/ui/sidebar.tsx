@@ -132,7 +132,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
     ref
   ) => {
     const sidebarContext = useSidebar()
-    const { state, open, isMobile, openMobile } = sidebarContext
+    const { state, isMobile, openMobile } = sidebarContext
     const mobile = isMobile && collapsible === "offcanvas"
 
     if (collapsible === "none") {

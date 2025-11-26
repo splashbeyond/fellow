@@ -189,11 +189,11 @@ export function useWebRTC(localStream: MediaStream | null, roomType: 'faith' | '
     });
 
     return () => {
-      signalingService.offMatched(handleMatched);
-      signalingService.offOffer(handleOffer);
-      signalingService.offAnswer(handleAnswer);
-      signalingService.offIceCandidate(handleIceCandidate);
-      signalingService.offPeerDisconnected(handlePeerDisconnected);
+      signalingService.offMatched(({ roomId, initiator }) => handleMatched(roomId, initiator));
+      signalingService.offOffer(({ sdp }) => handleOffer(sdp));
+      signalingService.offAnswer(({ sdp }) => handleAnswer(sdp));
+      signalingService.offIceCandidate(({ candidate }) => handleIceCandidate(candidate));
+      signalingService.offPeerDisconnected(() => handlePeerDisconnected());
     };
   }, [handleMatched, handleOffer, handleAnswer, handleIceCandidate, handlePeerDisconnected]);
 
